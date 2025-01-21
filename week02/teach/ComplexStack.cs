@@ -22,3 +22,8 @@
         return stack.Count == 0;
     }
 }
+
+// The method uses a stack to process characters in the input string
+// It handles parentheses/brackets/braces: (), [], {}
+// Returns true if all brackets are properly matched/nested
+// Returns false if brackets are mismatched

@@ -11,24 +11,36 @@ public class CustomerService {
         // Test Cases
 
         // Test 1
-        // Scenario: 
-        // Expected Result: 
+        // Scenario: Test invalid queue size, defaults 10
+        // Expected Result: Max size should be 10
         Console.WriteLine("Test 1");
+        var service = new CustomerService(0);
+        Console.WriteLine(service);
 
         // Defect(s) Found: 
 
         Console.WriteLine("=================");
 
         // Test 2
-        // Scenario: 
-        // Expected Result: 
+        // Scenario: Test queue full
+        // Expected Result: Should not add more customers to the full queue.
         Console.WriteLine("Test 2");
+        service = new CustomerService(1);
+        service.AddNewCustomer();
+        service.AddNewCustomer();
 
         // Defect(s) Found: 
 
         Console.WriteLine("=================");
 
         // Add more Test Cases As Needed Below
+
+        // Test 3
+        // Scenario: Test serving from empty queue
+        // Expected Result: No Customers in Queue.
+        Console.WriteLine("Test 3");
+        service = new CustomerService(2);
+        service.ServeCustomer();
     }
 
     private readonly List<Customer> _queue = new();
@@ -67,7 +79,7 @@ public class CustomerService {
     /// </summary>
     private void AddNewCustomer() {
         // Verify there is room in the service queue
-        if (_queue.Count > _maxSize) {
+        if (_queue.Count >= _maxSize) { // I changed > to >= because that was wrong comparison
             Console.WriteLine("Maximum Number of Customers in Queue.");
             return;
         }
@@ -88,9 +100,13 @@ public class CustomerService {
     /// Dequeue the next customer and display the information.
     /// </summary>
     private void ServeCustomer() {
-        _queue.RemoveAt(0);
-        var customer = _queue[0];
-        Console.WriteLine(customer);
+        if (_queue.Count == 0) {
+            Console.WriteLine("No Customers in Queue.");
+            return;
+        }
+        var customer = _queue[0]; // Get customer first
+        _queue.RemoveAt(0); // Remove customer from queue
+        Console.WriteLine(customer); // Display customer information
     }
 
     /// <summary>
