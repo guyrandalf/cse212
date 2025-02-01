@@ -22,7 +22,17 @@ public static class SetsAndMaps
     public static string[] FindPairs(string[] words)
     {
         // TODO Problem 1 - ADD YOUR CODE HERE
-        return [];
+        var seen = new HashSet<string>(words);
+        var results = new List<string>();
+        foreach (var w in words)
+        {
+            // THis will skip same-letter words like "aa"
+            if (w[0] == w[1]) continue;
+            var rev = $"{w[1]}{w[0]}";
+            if (seen.Contains(rev) && string.CompareOrdinal(w, rev) < 0)
+                results.Add($"{w} & {rev}");
+        }
+        return results.ToArray();
     }
 
     /// <summary>
@@ -39,12 +49,23 @@ public static class SetsAndMaps
     public static Dictionary<string, int> SummarizeDegrees(string filename)
     {
         var degrees = new Dictionary<string, int>();
-        foreach (var line in File.ReadLines(filename))
+        using (var sr = new StreamReader(filename))
         {
-            var fields = line.Split(",");
-            // TODO Problem 2 - ADD YOUR CODE HERE
+            while (!sr.EndOfStream)
+            {
+                var line = sr.ReadLine();
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                // Assume CSV with at least 4 columns
+                var parts = line.Split(',');
+                // 4th column has degree (index=3)
+                var degree = parts[3];
+                if (!degrees.ContainsKey(degree))
+                {
+                    degrees[degree] = 0;
+                }
+                degrees[degree]++;
+            }
         }
-
         return degrees;
     }
 
@@ -67,7 +88,24 @@ public static class SetsAndMaps
     public static bool IsAnagram(string word1, string word2)
     {
         // TODO Problem 3 - ADD YOUR CODE HERE
-        return false;
+        word1 = new string(word1.ToLower().Where(char.IsLetter).ToArray());
+        word2 = new string(word2.ToLower().Where(char.IsLetter).ToArray());
+        if (word1.Length != word2.Length) return false;
+
+        var dict = new Dictionary<char, int>();
+        foreach (var c in word1)
+        {
+            if (!dict.ContainsKey(c)) dict[c] = 0;
+            dict[c]++;
+        }
+
+        foreach (var c in word2)
+        {
+            if (!dict.ContainsKey(c)) return false;
+            dict[c]--;
+            if (dict[c] < 0) return false;
+        }
+        return true;
     }
 
     /// <summary>
@@ -88,19 +126,23 @@ public static class SetsAndMaps
     {
         const string uri = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
         using var client = new HttpClient();
-        using var getRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
-        using var jsonStream = client.Send(getRequestMessage).Content.ReadAsStream();
-        using var reader = new StreamReader(jsonStream);
-        var json = reader.ReadToEnd();
+
+        var json = client.GetStringAsync(uri).Result;
+
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        var data = JsonSerializer.Deserialize<FeatureCollection>(json, options);
+        // data.Features => List<Feature>
 
-        var featureCollection = JsonSerializer.Deserialize<FeatureCollection>(json, options);
-
-        // TODO Problem 5:
-        // 1. Add code in FeatureCollection.cs to describe the JSON using classes and properties 
-        // on those classes so that the call to Deserialize above works properly.
-        // 2. Add code below to create a string out each place a earthquake has happened today and its magitude.
-        // 3. Return an array of these string descriptions.
-        return [];
+        var result = new List<string>();
+        if (data?.Features != null)
+        {
+            foreach (var feature in data.Features)
+            {
+                var place = feature.Properties.Place;
+                var mag = feature.Properties.Mag;
+                result.Add($"{place} - Mag {mag}");
+            }
+        }
+        return result.ToArray();
     }
 }

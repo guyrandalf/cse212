@@ -33,6 +33,9 @@ public class Maze
     public void MoveLeft()
     {
         // FILL IN CODE
+        if (!_map[_location][0]) throw new InvalidOperationException("Can't move left");
+        _location = (_location.Item1 - 1, _location.Item2);
+        return true;
     }
 
     /// <summary>
